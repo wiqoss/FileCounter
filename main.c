@@ -14,13 +14,7 @@
 #define MB 1048576.0
 #define KB 1024.0
 
-char* format_file_weight(const double weight) {
-    char* str = malloc(30 * sizeof(char));
-    if (str == NULL) {
-        perror("malloc failed");
-        return NULL;
-    }
-
+void format_file_weight(const double weight, char* str) {
     if (weight > GB) {
         sprintf(str, "%.2f %sGB%s", weight / GB, RED, RESET);
     } else if (weight > MB) {
@@ -30,8 +24,6 @@ char* format_file_weight(const double weight) {
     } else {
         sprintf(str, "%.2f B", weight);
     }
-
-    return str;
 }
 
 double calculate_directory_size(const char *path) {
@@ -100,10 +92,10 @@ void print_directory_info() {
             continue;
         }
 
-        char *formatted;
+        char *formatted = malloc(30);
         if (S_ISDIR(file_info.st_mode)) {
             double dir_size = calculate_directory_size(entry->d_name);
-            formatted = format_file_weight(dir_size);
+            format_file_weight(dir_size, formatted);
             if (formatted == NULL) {
                 perror("format failed");
                 free(file_name);
@@ -120,7 +112,7 @@ void print_directory_info() {
             total_size += dir_size;
             snprintf(dirs[dir_count - 1], strlen(file_name) + strlen(": ") + strlen(formatted) + 1, "%s: %s", file_name, formatted);
         } else {
-            formatted = format_file_weight(file_info.st_size);
+            format_file_weight(file_info.st_size, formatted);
             if (formatted == NULL) {
                 perror("format failed");
                 free(file_name);
@@ -155,7 +147,8 @@ void print_directory_info() {
         free(dirs[i]);
     }
 
-    char* formatted_total = format_file_weight(total_size);
+    char* formatted_total = malloc(30);
+    format_file_weight(total_size, formatted_total);
     printf("Total size: %s\n", formatted_total);
     free(formatted_total);
 }
